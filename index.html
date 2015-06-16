@@ -33,14 +33,15 @@ form {
 </style>
 <form>
   <label><select >
-              <option value="dropVowels">Drop Vowels</option>
-              <option value="trunc">Truncation</option>              
+              <option value=0>Drop Vowels</option>
+              <option value=1>Truncation</option>              
         </select> Word Abbreviation Technique <br> </label>
   <label><input type="radio" name="mode" value="size" checked> Size</label>
   <label><input type="radio" name="mode" value="count"> Count</label>
  
 </form>
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="/library/jquery-1.2.6.min.js"></script>
 <script>
     
     
@@ -71,7 +72,7 @@ d3.json("flare.json", function(error, root) {
       .attr("class", "node")
       .call(position)
       .style("background", function(d) { return d.children ? color(d.name) : null; })
-      .text(function(d) { return d.children ? null :wordAbbreviation(d.name, Math.max(0, d.dx - 1)); });
+      .text(function(d) { return d.children ? null :wordAbbreviation($('select').val(), d.name, Math.max(0, d.dx - 1)); });
 
   d3.selectAll("input").on("change", function change() {
     var value = this.value === "count"
@@ -83,21 +84,21 @@ d3.json("flare.json", function(error, root) {
         .transition()
         .duration(1000)
         .call(position)
-        .text(function(d) { return d.children ? null :wordAbbreviation(d.name, Math.max(0, d.dx - 1)); });
+        .text(function(d) { return d.children ? null :wordAbbreviation($('select').val(), d.name, Math.max(0, d.dx - 1)); });
   });
     
-    d3.selectAll("select").on("change", function change() {
-        console.log(this.value);
-    var value = $('input[name=mode]:checked').val() === "count"
+    d3.selectAll("select").on("change", function change() {  
+    console.log(this.value);    
+    var mode = $('input[name=mode]:checked').val() === "count"
         ? function() { return 1; }
         : function(d) { return d.size; };
 
     node
-        .data(treemap.value(value).nodes)
+        .data(treemap.value(mode).nodes)
         .transition()
         .duration(1000)
         .call(position)
-        .text(function(d) { return d.children ? null :wordAbbreviation(d.name, Math.max(0, d.dx - 1)); });
+        .text(function(d) { return d.children ? null : wordAbbreviation($('select').val(), d.name, Math.max(0, d.dx - 1)); });
   });
 });
 
@@ -119,12 +120,30 @@ function dropVowels(word, wordSize, nodeWidth){
         wordSize = getWordSize(testWord);        
     }
     return testWord;
+}   
+    
+function truncation(word, wordSize, nodeWidth){          
+    var index = word.length, 
+        newWord, testWord;
+    while (wordSize>nodeWidth && index>MIN_WORD_LENGTH){
+        index--;        
+        testWord = word.substring(0,index);
+        wordSize = getWordSize(testWord);        
+    }    
+    return testWord;
 }    
 
-function wordAbbreviation(word, nodeWidth){
+function wordAbbreviation(technique, word, nodeWidth){
     var wordpx = getWordSize(word);
-    if(wordpx > nodeWidth+1.5) {
-        return dropVowels(word, wordpx, nodeWidth);
+    if(wordpx > nodeWidth+1.5) {       
+        switch(+technique) {
+        case 0:                
+            return dropVowels(word, wordpx, nodeWidth);
+            break;
+        case 1:                
+            return truncation(word, wordpx, nodeWidth);
+            break;
+        }       
     } else {
         return word;
     }
