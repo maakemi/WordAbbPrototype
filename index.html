@@ -136,10 +136,9 @@ function truncation(word, wordSize, nodeWidth){
 }    
     
 function truncationKeepEnd(word, wordSize, nodeWidth){          
-    var index = word.length, 
+    var index = word.length-1, 
         endWord, testWord;
-    endWord = word.charAt(index-1);
-    index--;
+    endWord = word.charAt(index);    
     while (wordSize>nodeWidth-1.5 && index>MIN_WORD_LENGTH){
         index--;        
         testWord = word.substring(0,index)+"·"+endWord;
@@ -170,8 +169,7 @@ function wordAbbreviation(technique, word, nodeWidth){
     
 function getWordSize(word) {
     var span = document.getElementById("testArea");
-    span.innerHTML = word;
-    
+    span.innerHTML = word;    
     return(span.offsetWidth)
 }
     
